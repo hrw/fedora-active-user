@@ -31,3 +31,19 @@ $ kinit YOUR_USERID@FEDORAPROJECT.ORG
 
 ```
 
+Usage
+-----
+
+```
+$ python3 fedora_active_user.py --user USERID
+```
+
+or
+
+```
+$ python3 fedora_active_user.py --email EMAIL
+```
+
+The first way is recommended because some users have
+a separate email for mailing lists and a separate one for
+the Bugzilla. Script can read them both from FAS.
