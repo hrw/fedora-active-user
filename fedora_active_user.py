@@ -21,15 +21,18 @@ whether someone can be consider as 'active' or not within the fedora
 project.
 """
 
+import argparse
 import datetime
-import getpass
 import json
+import koji
 import logging
-import re
 import sys
 import time
 import urllib.parse
 import urllib.request
+
+from bodhi.client.bindings import BodhiClient
+from bugzilla import Bugzilla
 
 
 # Initial simple logging stuff
@@ -63,7 +66,6 @@ def _get_bodhi_history(username):
 
     :arg username, the fas username whose action is searched.
     """
-    from bodhi.client.bindings import BodhiClient
     bodhiclient = BodhiClient("https://bodhi.fedoraproject.org/")
 
     log.debug('Querying Bodhi for user: {0}'.format(username))
@@ -97,7 +99,6 @@ def _get_bugzilla_history(email, all_comments=False):
     :arg all_comments, boolean to display all the comments made by this
     person on the bugzilla.
     """
-    from bugzilla import Bugzilla
     bzclient = Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi')
 
     log.debug('Querying bugzilla for email: {0}'.format(email))
@@ -160,7 +161,6 @@ def _get_koji_history(username):
 
     :arg username, the fas username whose history is investigated.
     """
-    import koji
     kojiclient = koji.ClientSession('https://koji.fedoraproject.org/kojihub',
                                     {})
 
@@ -494,7 +494,6 @@ def setup_parser():
     """
     Set the command line arguments.
     """
-    import argparse
 
     parser = argparse.ArgumentParser(
         prog="fedora_active_user")
@@ -526,5 +525,4 @@ def setup_parser():
 
 
 if __name__ == '__main__':
-    import sys
     sys.exit(main())
