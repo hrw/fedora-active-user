@@ -41,23 +41,23 @@ log = logging.getLogger("active-user")
 
 
 _table_keys = {
-    'user_perms' : ['user_id', 'perm_id'],
-    'user_groups' : ['user_id', 'group_id'],
-    'cg_users' : ['user_id', 'cg_id'],
-    'tag_inheritance' : ['tag_id', 'parent_id'],
-    'tag_config' : ['tag_id'],
-    'tag_extra' : ['tag_id', 'key'],
-    'build_target_config' : ['build_target_id'],
-    'external_repo_config' : ['external_repo_id'],
+    'user_perms': ['user_id', 'perm_id'],
+    'user_groups': ['user_id', 'group_id'],
+    'cg_users': ['user_id', 'cg_id'],
+    'tag_inheritance': ['tag_id', 'parent_id'],
+    'tag_config': ['tag_id'],
+    'tag_extra': ['tag_id', 'key'],
+    'build_target_config': ['build_target_id'],
+    'external_repo_config': ['external_repo_id'],
     'host_config': ['host_id'],
     'host_channels': ['host_id', 'channel_id'],
-    'tag_external_repos' : ['tag_id', 'external_repo_id'],
-    'tag_listing' : ['build_id', 'tag_id'],
-    'tag_packages' : ['package_id', 'tag_id'],
-    'tag_package_owners' : ['package_id', 'tag_id'],
-    'group_config' : ['group_id', 'tag_id'],
-    'group_req_listing' : ['group_id', 'tag_id', 'req_id'],
-    'group_package_listing' : ['group_id', 'tag_id', 'package'],
+    'tag_external_repos': ['tag_id', 'external_repo_id'],
+    'tag_listing': ['build_id', 'tag_id'],
+    'tag_packages': ['package_id', 'tag_id'],
+    'tag_package_owners': ['package_id', 'tag_id'],
+    'group_config': ['group_id', 'tag_id'],
+    'group_req_listing': ['group_id', 'tag_id', 'req_id'],
+    'group_package_listing': ['group_id', 'tag_id', 'package'],
 }
 
 
@@ -217,7 +217,8 @@ def _get_last_email_list(email):
     """
     log.debug('Searching activity for {0} on the Fedora lists'.format(email))
     print('Last email on mailing list:')
-    url  = "https://lists.fedoraproject.org/archives/api/sender/{0}/emails/".format(email)
+    url = ("https://lists.fedoraproject.org/archives/api/sender/"
+           f"{email}/emails/")
     log.debug('Querying {0}'.format(url))
     stream = urllib.request.urlopen(url)
     data = json.loads(stream.read())
@@ -317,7 +318,7 @@ def _print_histline(entry, **kwargs):
         if len(edit) != 1:
             bad_edit = '{0} elements'.format(len(edit) + 1)
         other = edit[0]
-        #check edit for sanity
+        # check edit for sanity
         if create or not other[2]:
             bad_edit = "out of order"
         if event_id != other[0]:
@@ -325,7 +326,7 @@ def _print_histline(entry, **kwargs):
         if bad_edit:
             print('Warning: unusual edit at event {0} in table {1} ({2})'
                   ''.format(event_id, table, bad_edit))
-            #we'll simply treat them as separate events
+            # we'll simply treat them as separate events
             _print_histline(entry, **kwargs)
             for data in edit:
                 _print_histline(entry, **kwargs)
