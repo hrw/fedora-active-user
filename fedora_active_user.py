@@ -30,6 +30,7 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+import urllib_gssapi
 
 from bodhi.client.bindings import BodhiClient
 from bugzilla import Bugzilla
@@ -273,32 +274,24 @@ def _get_fedmsg_history(username):
     print()
 
 
-def _get_last_website_login(username):
-    """ Retrieve from FAS the last time this user has been seen.
+def _get_fas_info(username):
+    """ Retrieve user information from FAS.
 
-    :arg username, the fas username from who we would like to see the
-        last connection in FAS.
+    :arg username, the fas username from who we would like to see information
     """
-    from fedora.client import AccountSystem
-    fasclient = AccountSystem()
 
     log.debug('Querying FAS for user: {0}'.format(username))
-    try:
-        import fedora_cert
-        fasusername = fedora_cert.read_user_cert()
-    except Exception:
-        log.debug('Could not read Fedora cert, using login name')
-        if PY3:
-            fasusername = input('FAS username: ')
-        else:
-            fasusername = raw_input('FAS username: ')
-    password = getpass.getpass('FAS password for %s: ' % fasusername)
-    fasclient.username = fasusername
-    fasclient.password = password
-    person = fasclient.person_by_username(username)
-    print('Last login in FAS:')
-    print('   %s %s' % (username, person['last_seen'].split(' ')[0]))
-    print()
+    url = (f"https://fasjson.fedoraproject.org/v1/users/{username}/")
+
+    handler = urllib_gssapi.HTTPSPNEGOAuthHandler()
+    opener = urllib.request.build_opener(handler)
+    urllib.request.install_opener(opener)
+
+    stream = urllib.request.urlopen(url)
+    data = json.loads(stream.read())
+    stream.close()
+
+    return data['result']
 
 
 def _print_histline(entry, **kwargs):
@@ -465,19 +458,31 @@ def main():
     elif args.verbose:
         log.setLevel(logging.INFO)
 
+    fas_info = {}
+
     try:
         if args.username and not args.nofas:
-            _get_last_website_login(args.username)
+            fas_info = _get_fas_info(args.username)
         if args.username and not args.nokoji:
             _get_koji_history(args.username)
         if args.username and not args.nobodhi:
             _get_bodhi_history(args.username)
         if args.username and not args.nofedmsg:
             _get_fedmsg_history(args.username)
+
+        if not args.email and 'username' in fas_info:
+            args.email = fas_info["emails"][0]
+
+        if (not args.email and 'rhbzemail' in fas_info
+            and fas_info['rhbzemail'] is not None):
+            bugemail = fas_info["rhbzemail"]
+        else:
+            bugemail = args.email
+
         if args.email and not args.nolists:
             _get_last_email_list(args.email)
         if args.email and not args.nobz:
-            _get_bugzilla_history(args.email)
+            _get_bugzilla_history(bugemail)
 
     except Exception as err:
         if args.debug:
