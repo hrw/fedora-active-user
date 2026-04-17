@@ -4,8 +4,8 @@ fedora-active-user
 [![Build Status](https://travis-ci.org/pypingou/fedora-active-user.svg?branch=master)](https://travis-ci.org/pypingou/fedora-active-user)
 
 This script generates a small report of the recent activity
-of a fellow Fedora contributor using either his FAS login
-or his email address.
+of a fellow Fedora contributor using either their FAS (Fedora
+Account System) login (recommended) or their email address.
 
 The script checks:
 - Last login on a website using FAS
