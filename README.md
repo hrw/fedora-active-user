@@ -8,13 +8,12 @@ of a fellow Fedora contributor using either their FAS (Fedora
 Account System) login (recommended) or their email address.
 
 The script checks:
-- Last login on a website using FAS
-- Last builds on koji
-- Last update on Bodhi (not yet implemented)
-- Last update on bugzilla (takes a while and may not work on F16)
-- Last email set to mailing lists
-- Last actions recorded by fedmsg
 
+- last builds on koji
+- last update on Bodhi
+- last update on Bugzilla (takes a while)
+- last email set to mailing lists
+- last actions recorded by fedmsg
 The mailing lists considered are set at the top of the script, at
 the moment, they are:
   fedora.devel
