@@ -1,5 +1,5 @@
-#!/usr/bin/python -tt
-#-*- coding: utf-8 -*-
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
 #    This program is free software; you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -28,14 +28,8 @@ import logging
 import re
 import sys
 import time
-
-PY3 = sys.version_info[0] >= 3
-
-if PY3:
-    import urllib.parse
-    import urllib.request
-else:
-    import urllib
+import urllib.parse
+import urllib.request
 
 
 # Initial simple logging stuff
@@ -225,10 +219,7 @@ def _get_last_email_list(email):
     print('Last email on mailing list:')
     url  = "https://lists.fedoraproject.org/archives/api/sender/{0}/emails/".format(email)
     log.debug('Querying {0}'.format(url))
-    if PY3:
-        stream = urllib.request.urlopen(url)
-    else:
-        stream = urllib.urlopen(url)
+    stream = urllib.request.urlopen(url)
     data = json.loads(stream.read())
     stream.close()
     if not data["count"]:
@@ -260,10 +251,7 @@ def _get_fedmsg_history(username):
         '?user=%s&order=desc&delta=31104000&meta=subtitle&'\
         'rows_per_page=10' % (username)
     log.debug(url)
-    if PY3:
-        stream = urllib.request.urlopen(url)
-    else:
-        stream = urllib.urlopen(url)
+    stream = urllib.request.urlopen(url)
     page = stream.read()
     stream.close()
     jsonobj = json.loads(page)
@@ -282,8 +270,6 @@ def _get_fedmsg_history(username):
                 # datagrepper returned this message for our user, but the user
                 # doesn't appear in the message.  How?
                 raise ValueError("This shouldn't happen.")
-        if not PY3:
-            print()
     print()
 
 
