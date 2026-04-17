@@ -211,7 +211,7 @@ def _get_koji_history(username):
 
 
 def _get_last_email_list(email):
-    """ Using gname, let's find the last email sent by this email.
+    """ Let's find the last email sent by this email.
 
     :arg email, the email address to search on the mailing lists.
     """
@@ -224,7 +224,7 @@ def _get_last_email_list(email):
     data = json.loads(stream.read())
     stream.close()
     if not data["count"]:
-        print("   No activity found on %s" % mailinglist)
+        print("   No activity found on Fedora mailing lists")
     else:
         for entry in data["results"]:
             print(
@@ -235,7 +235,6 @@ def _get_last_email_list(email):
                     entry["mailinglist"],
                 )
             )
-        next_url = data["next"]
     print()
 
 
