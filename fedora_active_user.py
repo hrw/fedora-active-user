@@ -474,27 +474,32 @@ def main():
     fas_info = {}
 
     try:
-        if args.username and not args.nofas:
-            fas_info = _get_fas_info(args.username)
-        if args.username and not args.nokoji:
-            _get_koji_history(args.username)
-        if args.username and not args.nobodhi:
-            _get_bodhi_history(args.username)
-        if args.username and not args.nofedmsg:
-            _get_fedmsg_history(args.username)
+        if args.username:
+            if not args.nofas:
+                fas_info = _get_fas_info(args.username)
+            if not args.nokoji:
+                _get_koji_history(args.username)
+            if not args.nobodhi:
+                _get_bodhi_history(args.username)
+            if not args.nofedmsg:
+                _get_fedmsg_history(args.username)
 
-        if not args.email and 'username' in fas_info:
-            args.email = fas_info["emails"][0]
+        if args.email:
+            email = args.email
+        elif 'emails' in fas_info:
+            email = fas_info["emails"][0]
+        else:
+            # no email, our job is done
+            sys.exit(0)
 
-        if (not args.email and 'rhbzemail' in fas_info
-            and fas_info['rhbzemail'] is not None):
+        if 'rhbzemail' in fas_info and fas_info['rhbzemail'] is not None:
             bugemail = fas_info["rhbzemail"]
         else:
-            bugemail = args.email
+            bugemail = email
 
-        if args.email and not args.nolists:
-            _get_last_email_list(args.email)
-        if args.email and not args.nobz:
+        if not args.nolists:
+            _get_last_email_list(email)
+        if not args.nobz:
             _get_bugzilla_history(bugemail)
 
     except Exception as err:
