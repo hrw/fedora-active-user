@@ -64,22 +64,14 @@ def _get_bodhi_history(username):
     bodhiclient = BodhiClient("https://bodhi.fedoraproject.org/")
 
     print()
-    print('Last package update on bodhi:')
+    print('Last package updates on bodhi:')
     log.debug(f'Querying Bodhi for user: {username}')
-    json_obj = bodhiclient.send_request(
-        "updates/?user=%s" % username, verb='GET')
-
-    def dategetter(field):
-        def getter(item):
-            return datetime.strptime(item[field], "%Y-%m-%d %H:%M:%S")
-
-        return getter
+    json_obj = bodhiclient.query(user=username, desc=True)
 
     if json_obj['updates']:
-        latest = sorted(json_obj['updates'], key=dategetter("date_submitted")
-                        )[-1]
-        print('   {0} on package {1}'.format(
-            latest["date_submitted"], latest["title"]))
+        for update in json_obj['updates']:
+            print('   {0} on package {1}'.format(
+                update["date_submitted"], update["title"]))
     else:
         print('   No activity found on bodhi')
 
