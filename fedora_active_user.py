@@ -159,8 +159,11 @@ def _get_koji_history(username):
                                    queryOpts={"limit": 10, "order":
                                               "-build_id"})
 
-    for build in builds:
-        print_info_with_time(f"built {build["nvr"]}", build["creation_ts"])
+    if builds:
+        for build in builds:
+            print_info_with_time(f"built {build["nvr"]}", build["creation_ts"])
+    else:
+        print("   No activity found on koji")
 
 
 def _get_last_email_list(email):
