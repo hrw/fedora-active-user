@@ -89,7 +89,7 @@ def _get_bugzilla_history(email, all_comments=False):
     bzclient = Bugzilla(url='https://bugzilla.redhat.com/xmlrpc.cgi')
 
     print()
-    print("Last Bugzilla activity")
+    print("Last Bugzilla activity:")
     log.debug(f'Querying Bugzilla for email: {email}')
 
     bugbz = bzclient.query({
@@ -97,7 +97,7 @@ def _get_bugzilla_history(email, all_comments=False):
         'emailcc1': True,
         'emailassigned_to1': True,
         'query_format': 'advanced',
-        'order': 'Last Change',
+        'order': 'last_change_time',
         'bug_status': ['ASSIGNED', 'NEW', 'NEEDINFO'],
         'email1': email
     })
@@ -105,12 +105,10 @@ def _get_bugzilla_history(email, all_comments=False):
     # Retrieve the information about this user
     try:
         user = bzclient.getuser(email)
-        bugbz.reverse()
 
-        print('Last comment on the most recent ticket on Bugzilla:')
         ids = [bug.bug_id for bug in bugbz]
         for bug in bzclient.getbugs(ids):
-            log.debug(bug.bug_id)
+            log.debug(f"Checking comments for #{bug.id}")
             user_coms = [
                 com
                 for com in bug.longdescs
@@ -118,22 +116,17 @@ def _get_bugzilla_history(email, all_comments=False):
             ]
 
             if user_coms:
-                last_com = user_coms[-1]
-                converted = datetime.strptime(last_com['time'].value,
-                                              "%Y%m%dT%H:%M:%S")
-                print(
-                    u'   #{0} {1} {2}'.format(
-                        bug.bug_id,
-                        converted.strftime('%Y-%m-%d'),
-                        last_com['creator']
-                    )
-                )
+                for comment in user_coms:
+                    comment_time = datetime.strptime(comment['time'].value,
+                                                     "%Y%m%dT%H:%M:%S"
+                                                     ).timestamp()
+                    print_info_with_time(f"#{bug.id} "
+                                         f"({bug.product}/{bug.component}) "
+                                         f"{bug.summary}",
+                                         comment_time)
+                    if not all_comments:
+                        break
 
-            else:
-                continue
-
-                if not all_comments:
-                    break
     except xmlrpc.client.Fault as e:
         print(f"There was an error querying for '{email}':")
         print(e)
@@ -290,7 +283,7 @@ def main():
         if not args.nolists:
             _get_last_email_list(email)
         if not args.nobz:
-            _get_bugzilla_history(bugemail)
+            _get_bugzilla_history(bugemail, args.all_comments)
 
     except Exception as err:
         if args.debug:
