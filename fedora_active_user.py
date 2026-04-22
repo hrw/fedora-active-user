@@ -246,6 +246,8 @@ def _get_fas_info(username):
     except urllib.error.HTTPError as err:
         if err.code == 401:
             print("You need Kerberos ticket. Please run kinit.")
+        elif err.code == 404:
+            print(f"User {username} was not found on FAS.")
         else:
             print(err)
         sys.exit(-1)
@@ -264,7 +266,7 @@ def main():
     elif args.verbose:
         log.setLevel(logging.INFO)
 
-    fas_info = {'human_name': '', 'username':''}
+    fas_info = {'human_name': '', 'username': ''}
 
     try:
         if args.username:
