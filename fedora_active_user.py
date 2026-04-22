@@ -73,8 +73,10 @@ def _get_bodhi_history(username):
 
     if json_obj['updates']:
         for update in json_obj['updates']:
-            print('   {0} on package {1}'.format(
-                update["date_submitted"], update["title"]))
+            update_time = datetime.strptime(update['date_submitted'],
+                                            "%Y-%m-%d %H:%M:%S"
+                                            ).timestamp()
+            print_info_with_time(update["title"], update_time)
     else:
         print('   No activity found on bodhi')
 
