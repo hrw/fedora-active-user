@@ -240,7 +240,7 @@ def _get_fas_info(username):
     """
 
     log.debug(f'Querying FAS for user: {username}')
-    url = (f"https://fasjson.fedoraproject.org/v1/users/{username}/")
+    url = f"https://fasjson.fedoraproject.org/v1/users/{username}/"
 
     # We need to handle Kerberos in fetching URL
     handler = urllib_gssapi.HTTPSPNEGOAuthHandler()
