@@ -44,11 +44,15 @@ terminal_columns = shutil.get_terminal_size().columns
 
 
 def print_info_with_time(info, time):
+    """ Print information followed by time. Output cut to the terminal's width.
+    """
     time = datetime.fromtimestamp(int(time)).strftime('%F')
     print(f"   {time} {info[:terminal_columns - 15]}")
 
 
 def fetch_json(url):
+    """ Fetch given URL, returns JSON data
+    """
     log.debug(f"Fetching {url}")
 
     stream = urllib.request.urlopen(url)
