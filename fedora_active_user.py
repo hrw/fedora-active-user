@@ -315,27 +315,27 @@ def setup_parser():
     """
 
     parser = argparse.ArgumentParser(
-        prog="fedora_active_user")
+        prog="fedora-active-user")
     # General connection options
     parser.add_argument('--user', dest="username",
                         help="FAS username")
     parser.add_argument('--email', dest="email",
-                        help="FAS or Bugzilla email looked for")
+                        help="Bugzilla email looked for")
     parser.add_argument('--nofas', action='store_true',
                         help="Do not check FAS")
     parser.add_argument('--nokoji', action='store_true',
-                        help="Do not check koji")
+                        help="Do not check Koji")
     parser.add_argument('--nolists', action='store_true',
                         help="Do not check mailing lists")
     parser.add_argument('--nobodhi', action='store_true',
-                        help="Do not check bodhi")
+                        help="Do not check Bodhi")
     parser.add_argument('--nobz', action='store_true',
                         help="Do not check bugzilla")
     parser.add_argument('--nofedmsg', action='store_true',
-                        help="Do not check fedmsg")
+                        help="Do not check Fedmsg")
     parser.add_argument('--all-comments', action='store_true',
                         help="Prints the date of all the comments made by this"
-                             " person on bugzilla")
+                             " person on Bugzilla")
     parser.add_argument('--verbose', action='store_true',
                         help="Gives more info about what's going on")
     parser.add_argument('--debug', action='store_true',
