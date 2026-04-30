@@ -88,6 +88,57 @@ def fetch_json(url, username=""):
     return json_data
 
 
+def _get_fas_info(username):
+    """ Retrieve user information from FAS.
+
+    :arg username, the fas username from who we would like to see information
+    """
+
+    log.debug(f'Querying FAS for user: {username}')
+    url = f"https://fasjson.fedoraproject.org/v1/users/{username}/"
+
+    # We need to handle Kerberos in fetching URL
+    handler = urllib_gssapi.HTTPSPNEGOAuthHandler()
+    opener = urllib.request.build_opener(handler)
+    urllib.request.install_opener(opener)
+
+    data = fetch_json(url, username)
+
+    if not data:
+        print("   Error querying FAS")
+        return
+
+    return data['result']
+
+
+def _get_koji_history(username):
+    """
+    Print the last builds made by this user in koji.
+    :arg username, the fas username whose history is investigated.
+    """
+    kojiclient = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
+
+    print()
+    print('Last action on koji:')
+    log.debug(f'Search last history element in koji for {username}')
+
+    user_data = kojiclient.getUser(username)
+
+    if not user_data:
+        print(f"User {username} not found.")
+        return
+
+    builds = kojiclient.listBuilds(userID=user_data["id"], state=1,
+                                   queryOpts={"limit": 10, "order":
+                                              "-build_id"})
+
+    if builds:
+        for build in builds:
+            print_info_with_time(f"built {build["nvr"]}", build["creation_ts"])
+    else:
+        print("   No activity found on koji")
+
+
 def _get_bodhi_history(username):
     """ Print the last action performed on bodhi by the given FAS user.
 
@@ -109,6 +160,73 @@ def _get_bodhi_history(username):
         update_time = parse_timestamp(update['date_submitted'],
                                         "%Y-%m-%d %H:%M:%S")
         print_info_with_time(update["title"], update_time)
+
+
+def _get_fedmsg_history(username):
+    """ Using datagrepper, returns the last 10 actions of the user
+    according to his/her username over the last year.
+
+    :arg username, the fas username whose action is searched.
+    """
+    print()
+    print('Last actions performed according to fedmsg:')
+    log.debug(f'Searching datagrepper for the action of {username}')
+    url = 'https://apps.fedoraproject.org/datagrepper/raw'\
+        f'?user={username}&order=desc&delta={365 * 24 * 60 * 60}'\
+        '&meta=subtitle&rows_per_page=10'
+
+    data = fetch_json(url)
+
+    if not data:
+        print("   Error querying Fedmsg")
+        return
+
+    for entry in data['raw_messages']:
+        print_info_with_time(entry['meta']['subtitle'],
+                             int(entry['timestamp']))
+        if 'meetbot' in entry['topic']:
+            done = False
+            if username in entry['msg']['chairs']:
+                print_info_with_time(f"{username} chaired", entry["timestamp"])
+                done = True
+
+            for a in entry['msg']['attendees']:
+                if username == a["name"]:
+                    print_info_with_time(f"{username} participated",
+                                         entry["timestamp"])
+                    done = True
+
+            if not done:
+                # datagrepper returned this message for our user, but the user
+                # doesn't appear in the message.  How?
+                raise ValueError("This shouldn't happen.")
+
+
+def _get_last_email_list(email):
+    """ Let's find the last email sent by this email.
+
+    :arg email, the email address to search on the mailing lists.
+    """
+    print()
+    print('Last emails on Fedora mailing lists:')
+    log.debug(f'Searching activity for {email} on the Fedora mailing lists')
+    url = ("https://lists.fedoraproject.org/archives/api/sender/"
+           f"{email}/emails/")
+
+    data = fetch_json(url)
+
+    if not data["count"]:
+        print("   No activity found on Fedora mailing lists")
+        return
+
+    for entry in data["results"]:
+        ml = entry["mailinglist"].replace(
+                'https://lists.fedoraproject.org/archives/api/list/',
+                '')
+        print_info_with_time(f"{email} as {entry["sender_name"]} mailed "
+                             f"{ml[:-1]}",
+                             datetime.fromisoformat(
+                                 entry["date"]).timestamp())
 
 
 def _get_bugzilla_history(email, fas_info, all_comments=False):
@@ -178,124 +296,6 @@ def _get_bugzilla_history(email, fas_info, all_comments=False):
     except xmlrpc.client.Fault as e:
         print(f"There was an error querying for '{email}':")
         print(e)
-
-
-def _get_koji_history(username):
-    """
-    Print the last builds made by this user in koji.
-    :arg username, the fas username whose history is investigated.
-    """
-    kojiclient = koji.ClientSession('https://koji.fedoraproject.org/kojihub')
-
-    print()
-    print('Last action on koji:')
-    log.debug(f'Search last history element in koji for {username}')
-
-    user_data = kojiclient.getUser(username)
-
-    if not user_data:
-        print(f"User {username} not found.")
-        return
-
-    builds = kojiclient.listBuilds(userID=user_data["id"], state=1,
-                                   queryOpts={"limit": 10, "order":
-                                              "-build_id"})
-
-    if builds:
-        for build in builds:
-            print_info_with_time(f"built {build["nvr"]}", build["creation_ts"])
-    else:
-        print("   No activity found on koji")
-
-
-def _get_last_email_list(email):
-    """ Let's find the last email sent by this email.
-
-    :arg email, the email address to search on the mailing lists.
-    """
-    print()
-    print('Last emails on Fedora mailing lists:')
-    log.debug(f'Searching activity for {email} on the Fedora mailing lists')
-    url = ("https://lists.fedoraproject.org/archives/api/sender/"
-           f"{email}/emails/")
-
-    data = fetch_json(url)
-
-    if not data["count"]:
-        print("   No activity found on Fedora mailing lists")
-        return
-
-    for entry in data["results"]:
-        ml = entry["mailinglist"].replace(
-                'https://lists.fedoraproject.org/archives/api/list/',
-                '')
-        print_info_with_time(f"{email} as {entry["sender_name"]} mailed "
-                             f"{ml[:-1]}",
-                             datetime.fromisoformat(
-                                 entry["date"]).timestamp())
-
-
-def _get_fedmsg_history(username):
-    """ Using datagrepper, returns the last 10 actions of the user
-    according to his/her username over the last year.
-
-    :arg username, the fas username whose action is searched.
-    """
-    print()
-    print('Last actions performed according to fedmsg:')
-    log.debug(f'Searching datagrepper for the action of {username}')
-    url = 'https://apps.fedoraproject.org/datagrepper/raw'\
-        f'?user={username}&order=desc&delta={365 * 24 * 60 * 60}'\
-        '&meta=subtitle&rows_per_page=10'
-
-    data = fetch_json(url)
-
-    if not data:
-        print("   Error querying Fedmsg")
-        return
-
-    for entry in data['raw_messages']:
-        print_info_with_time(entry['meta']['subtitle'],
-                             int(entry['timestamp']))
-        if 'meetbot' in entry['topic']:
-            done = False
-            if username in entry['msg']['chairs']:
-                print_info_with_time(f"{username} chaired", entry["timestamp"])
-                done = True
-
-            for a in entry['msg']['attendees']:
-                if username == a["name"]:
-                    print_info_with_time(f"{username} participated",
-                                         entry["timestamp"])
-                    done = True
-
-            if not done:
-                # datagrepper returned this message for our user, but the user
-                # doesn't appear in the message.  How?
-                raise ValueError("This shouldn't happen.")
-
-
-def _get_fas_info(username):
-    """ Retrieve user information from FAS.
-
-    :arg username, the fas username from who we would like to see information
-    """
-
-    log.debug(f'Querying FAS for user: {username}')
-    url = f"https://fasjson.fedoraproject.org/v1/users/{username}/"
-
-    # We need to handle Kerberos in fetching URL
-    handler = urllib_gssapi.HTTPSPNEGOAuthHandler()
-    opener = urllib.request.build_opener(handler)
-    urllib.request.install_opener(opener)
-
-    data = fetch_json(url, username)
-
-    if not data:
-        print("   Error querying FAS")
-        return
-
-    return data['result']
 
 
 def main():
