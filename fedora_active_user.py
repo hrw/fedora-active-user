@@ -98,15 +98,17 @@ def _get_bodhi_history(username):
     print()
     print('Last package updates on bodhi:')
     log.debug(f'Querying Bodhi for user: {username}')
-    json_obj = bodhiclient.query(user=username, desc=True)
 
-    if json_obj['updates']:
-        for update in json_obj['updates']:
-            update_time = parse_timestamp(update['date_submitted'],
-                                          "%Y-%m-%d %H:%M:%S")
-            print_info_with_time(update["title"], update_time)
-    else:
-        print('   No activity found on bodhi')
+    data = bodhiclient.query(user=username, desc=True)
+
+    if data['total'] == 0:
+        print("   No activity found on Bodhi")
+        return
+
+    for update in data['updates']:
+        update_time = parse_timestamp(update['date_submitted'],
+                                        "%Y-%m-%d %H:%M:%S")
+        print_info_with_time(update["title"], update_time)
 
 
 def _get_bugzilla_history(email, fas_info, all_comments=False):
