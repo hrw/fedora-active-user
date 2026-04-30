@@ -224,6 +224,10 @@ def _get_last_email_list(email):
 
     data = fetch_json(url)
 
+    if not data:
+        print("   Error querying Fedora mailing lists")
+        return
+
     if not data["count"]:
         print("   No activity found on Fedora mailing lists")
         return
