@@ -225,8 +225,8 @@ def _get_fedmsg_history(username):
     print('Last actions performed according to fedmsg:')
     log.debug(f'Searching datagrepper for the action of {username}')
     url = 'https://apps.fedoraproject.org/datagrepper/raw'\
-        f'?user={username}&order=desc&delta=31104000&meta=subtitle&'\
-        'rows_per_page=10'
+        f'?user={username}&order=desc&delta={365 * 24 * 60 * 60}'\
+        '&meta=subtitle&rows_per_page=10'
     jsonobj = fetch_json(url)
     for entry in jsonobj['raw_messages']:
         print_info_with_time(entry['meta']['subtitle'],
