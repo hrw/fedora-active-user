@@ -198,7 +198,7 @@ def _get_last_email_list(email):
     :arg email, the email address to search on the mailing lists.
     """
     print()
-    print('Last email on mailing list:')
+    print('Last emails on Fedora mailing lists:')
     log.debug(f'Searching activity for {email} on the Fedora mailing lists')
     url = ("https://lists.fedoraproject.org/archives/api/sender/"
            f"{email}/emails/")
