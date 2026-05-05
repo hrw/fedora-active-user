@@ -83,7 +83,7 @@ def has_valid_kerberos_ticket():
     return False
 
 
-def fetch_json(url, kerberos=False, username=""):
+def fetch_json(url, kerberos=False):
     """ Fetch given URL, returns JSON data
     """
     log.debug(f"Fetching {url}, Kerberos: {kerberos}")
@@ -104,10 +104,7 @@ def fetch_json(url, kerberos=False, username=""):
     except requests.ConnectionError as err:
         log.error(f"Failed to fetch {url}: {err}")
 
-        if r.status_code == 404:
-            print(f"User {username} was not found on FAS.")
-        else:
-            print(err)
+        print(err)
 
         # add empty line after error message to have separation
         print("")
@@ -127,11 +124,14 @@ def _get_fas_info(username):
     url = f"https://fasjson.fedoraproject.org/v1/users/{username}/"
 
     # We need to handle Kerberos in fetching URL
-    data = fetch_json(url, True, username)
+    data = fetch_json(url, True)
 
     if not data:
-        print("   Error querying FAS")
-        return {}
+        print("Error querying FAS")
+        sys.exit(1)
+    elif 'result' not in data:
+        print(f"Error querying FAS: {data['message']}")
+        sys.exit(1)
 
     return data['result']
 
