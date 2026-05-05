@@ -189,7 +189,7 @@ def _get_bodhi_history(username):
 
     for update in data['updates']:
         update_time = parse_timestamp(update['date_submitted'],
-                                        "%Y-%m-%d %H:%M:%S")
+                                      "%Y-%m-%d %H:%M:%S")
         print_info_with_time(update["title"], update_time)
 
 
