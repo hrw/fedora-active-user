@@ -28,6 +28,7 @@ import xmlrpc.client
 from datetime import datetime
 
 import koji
+import gssapi
 import requests
 
 from bodhi.client.bindings import BodhiClient
@@ -59,6 +60,29 @@ def parse_timestamp(timestamp_str, timeformat="%Y%m%dT%H:%M:%S"):
     return datetime.strptime(timestamp_str, timeformat).timestamp()
 
 
+def has_valid_kerberos_ticket():
+    """ Check validity of Kerberos ticket
+    """
+    log.debug("Checking validity of Kerberos ticket")
+    try:
+        # Attempt to acquire default client credentials
+        # usage='initiate' means we want to use the ticket
+        # to log into something
+        creds = gssapi.Credentials(usage='initiate')
+
+        # We need to use it to catch exception if ticket expired
+        if creds.name:
+            return True
+    except gssapi.raw.exceptions.MissingCredentialsError:
+        print("No Kerberos ticket found. Please run fkinit.")
+    except gssapi.raw.exceptions.ExpiredCredentialsError:
+        print("Your Kerberos ticket has expired. Please run fkinit.")
+    except Exception as e:
+        print(f"An error occurred checking Kerberos: {e}")
+
+    return False
+
+
 def fetch_json(url, kerberos=False, username=""):
     """ Fetch given URL, returns JSON data
     """
@@ -68,21 +92,19 @@ def fetch_json(url, kerberos=False, username=""):
 
     try:
         if kerberos:
+            if not has_valid_kerberos_ticket():
+                sys.exit(1)
+
             r = requests.get(url, auth=HTTPKerberosAuth())
         else:
             r = requests.get(url)
 
         json_data = r.json()
 
-        if r.status_code == 401:
-            print("You need Kerberos ticket. Please run kinit.")
-
     except requests.ConnectionError as err:
         log.error(f"Failed to fetch {url}: {err}")
 
-        if r.status_code == 401:
-            print("You need Kerberos ticket. Please run kinit.")
-        elif r.status_code == 404:
+        if r.status_code == 404:
             print(f"User {username} was not found on FAS.")
         else:
             print(err)
