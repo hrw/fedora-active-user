@@ -88,7 +88,7 @@ def fetch_json(url, kerberos=False):
     """
     log.debug(f"Fetching {url}, Kerberos: {kerberos}")
 
-    json_data = ""
+    json_data = {}
 
     try:
         if kerberos:
@@ -109,7 +109,7 @@ def fetch_json(url, kerberos=False):
         # add empty line after error message to have separation
         print("")
 
-        return {}
+        return False
 
     return json_data
 
