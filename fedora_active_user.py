@@ -282,7 +282,8 @@ def _get_bugzilla_history(email, fas_info, all_comments=False):
 
     try:
         bugs = bzclient.query({
-            'bug_status': ['ASSIGNED', 'NEW', 'NEEDINFO'],
+            'bug_status': ['ASSIGNED', 'NEW', 'NEEDINFO', 'ON_DEV', 'POST',
+                           'RELEASE_PENDING'],
             'email1': email,
             'emailassigned_to1': True,
             'emailtype1': 'substring',
