@@ -385,7 +385,7 @@ def setup_parser():
     parser = argparse.ArgumentParser(
         prog="fedora-active-user")
     # General connection options
-    parser.add_argument('--user', dest="username",
+    parser.add_argument('-u', '--user', dest="username",
                         help="FAS username")
     parser.add_argument('--email', dest="email",
                         help="Bugzilla email looked for")
@@ -404,9 +404,9 @@ def setup_parser():
     parser.add_argument('--all-comments', action='store_true',
                         help="Prints the date of all the comments made by this"
                              " person on Bugzilla")
-    parser.add_argument('--verbose', action='store_true',
+    parser.add_argument('-v', '--verbose', action='store_true',
                         help="Gives more info about what's going on")
-    parser.add_argument('--debug', action='store_true',
+    parser.add_argument('-d', '--debug', action='store_true',
                         help="Outputs bunches of debugging info")
     return parser
 
