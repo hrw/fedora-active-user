@@ -349,6 +349,10 @@ def main():
     fas_info = {}
 
     if args.username:
+        if args.email:
+            print("NOTE: username is enough — e-mail address(es) will be "
+                  "fetched from the FAS.")
+
         if not args.nofas:
             fas_info = _get_fas_info(args.username)
         if not args.nokoji:
