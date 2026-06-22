@@ -286,6 +286,8 @@ def _get_bugzilla_history(email, fas_info, all_comments=False):
                            'RELEASE_PENDING'],
             'email1': email,
             'emailassigned_to1': True,
+            'emailcc1': True,
+            'emailreporter1': True,
             'emailtype1': 'substring',
             'order': 'last_change_time DESC',
             'query_format': 'advanced',
